@@ -1,17 +1,27 @@
 import redis
+import pymongo
+from pymongo.server_api import ServerApi
+import json
 from bson.objectid import ObjectId
 import datetime
 
 
-conR = redis.Redis(host='redis-13733.c10.us-east-1-2.ec2.cloud.redislabs.com',
-                   port=13733,
-                   password='bdnr123')
-
-conR.set('user:name', 'priscila')
+#Conecção Mongo
+client = pymongo.MongoClient(
+    "mongodb+srv://desafio:pri123@cluster0.uchv6.mongodb.net/?retryWrites=true&w=majority",
+    server_api=ServerApi('1'))
+db = client.test
 
 global mydb
 mydb = client.mercadoLivre
 
+
+#Conecção Redis
+""" conR = redis.Redis(host='redis-13733.c10.us-east-1-2.ec2.cloud.redislabs.com',
+                   port=13733,
+                   password='bdnr123')
+
+conR.set('user:name', 'priscila') """
 ######USUÁRIO######
 
 
@@ -290,6 +300,16 @@ def main():
             inicializacao = False
 
 
-main()
+# main()
 
 # print(conR.get('user:name'))
+
+def selectuser(alvo):
+    global mydb
+    conUser = mydb.usuario
+    acharId = ObjectId(alvo)
+    query = conUser.find({"_id":{"$eq":acharId}})
+
+    for user in query: print(user)
+
+selectuser("632a5e7b099a52557e0f24aa")
