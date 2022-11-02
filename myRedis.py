@@ -6,6 +6,7 @@ from bson.objectid import ObjectId
 import datetime
 
 
+
 #Conecção Mongo
 client = pymongo.MongoClient(
     "mongodb+srv://desafio:pri123@cluster0.uchv6.mongodb.net/?retryWrites=true&w=majority",
@@ -17,17 +18,19 @@ mydb = client.mercadoLivre
 
 
 #Conecção Redis
-""" conR = redis.Redis(host='redis-13733.c10.us-east-1-2.ec2.cloud.redislabs.com',
+conectar = redis.Redis(host='redis-13542.c275.us-east-1-4.ec2.cloud.redislabs.com',
+                   port=13542,
+                   password='qR58kVZOGUkWSQ5M5WTs3bCZ3mwMAujk')
+""" conectar = redis.Redis(host='redis-13733.c10.us-east-1-2.ec2.cloud.redislabs.com',
                    port=13733,
-                   password='bdnr123')
+                   password='bdnr123') """
 
-conR.set('user:name', 'priscila') """
+""" conR.set('user:name', 'priscila') """
 ######USUÁRIO######
 
 
 ##Insert##
 def insertUser(nome, cpf, cep, estado, rua, email, telefone):
-    global mydb
     mycol = mydb.usuario
     print("\n######INSERT######")
     mydict = {
@@ -42,7 +45,7 @@ def insertUser(nome, cpf, cep, estado, rua, email, telefone):
         "email": email
     }
     x = mycol.insert_one(mydict)
-    print(x.inserted_id)
+    print(f"Usuario gerado com sucesso! com o id -{x.inserted_id}")
 
 
 ##Update##
@@ -234,13 +237,7 @@ def findSortUser():
         print(result)
 
 
-def findQueryUser(alvo):
-    global mydb
-    mycol = mydb.usuario
-    myquery = {"nome": {"$eq": alvo}}
-    mydoc = mycol.find(myquery)
-    for result in mydoc:
-        print(result)
+
 
 
 def findQueryVendedor(alvo):
@@ -288,28 +285,126 @@ def findSortCompras():
         print(result)
 
 
-def main():
-    inicializacao = True
-    print("""
-    """)
-    while inicializacao:
-        select = input("Opção: ")
-        if (select == '1'):
-            insertUser()
-        elif (select == 'x'):
-            inicializacao = False
-
-
-# main()
-
-# print(conR.get('user:name'))
-
-def selectuser(alvo):
-    global mydb
+def selectuser():
+    
     conUser = mydb.usuario
+    query2 = conUser.find({}, { "_id": 1, "nome": 1 })
+    for x in query2:
+        print(x)
+    alvo = input("Digite o id: ")
     acharId = ObjectId(alvo)
-    query = conUser.find({"_id":{"$eq":acharId}})
+    query = conUser.find({"_id":{"$eq":acharId}}, {"_id": 0})
 
     for user in query: print(user)
 
-selectuser("632a5e7b099a52557e0f24aa")
+def main():
+    inicializacao = True
+    print("""
+    1 - Inserir Usuario
+    2 - Selecionar Usuario
+    3 - Deletar Usuario
+    4 - Atualizar Usuario
+    5 - Selecionar Todos
+    6 -
+    7 -
+    8 -
+    9 -
+    10 -
+    X - Sair
+    """)
+    while inicializacao:
+        select = input("selecione a opção: ")
+        match select:
+            case "1":
+                nome = input("Digite o nome: ")
+                email = input("Digite o email: ")
+                cep = input("Digite o cep: ")
+                estado = input("Digite o estado: ")
+                rua = input("Digite a rua: ")
+                telefone = input("Digite o telefone: ")
+                cpf = input("Digite o CPF: ")
+                insertUser(nome, cpf, cep, estado, rua, email, telefone)
+            case "2":
+                selectuser()
+            case "3":
+                idAlvo = input("Selecione o id: ")
+                deleteUser(idAlvo)
+            case "X" | "x":
+                inicializacao = False
+            case "4":
+                idAlvo = input("Selecione o id: ")
+                nome = input("Atualize o nome: ")
+                email = input("Atualize o email: ")
+                cep = input("Atualize o cep: ")
+                estado = input("Atualize o estado: ")
+                rua = input("Atualize a rua: ")
+                telefone = input("Atualize o telefone: ")
+                cpf = input("Atualize o CPF: ")
+                updateUser(nome, cpf, cep, estado, rua, email, telefone)
+            case "5":
+               findSortUser()
+                
+
+
+#main()
+
+# MongoDB -> Redis ( Usuario criar uma Wish List ) ✔
+# Reids -> Manipular a Wish List do usuario
+# Wish List -> MongoDB
+
+# CHAVE
+# fav:ID
+
+def inserirUsuarioRedis(parametro):
+    userColumn = mydb.usuario
+    favId = ObjectId(parametro)
+    mydoc = userColumn.find({
+        # papel na gaveta - corresponder a data 27/04/2001
+        "_id": {"$eq": favId}
+    }, {
+        "_id": 1,
+    })
+    for x in mydoc:
+        favoritos = []
+        conectar.hset(f'fav:' + str(x["_id"]), "favoritos", json.dumps(favoritos))
+
+def findSortProdutos():
+    produtosColumn = mydb.produto
+    select = produtosColumn.find({}, {"_id": 1, "nome": 1})
+    for itens in select:
+        print(itens)
+
+def inserirFavoritosRedis(idUser):
+    findSortProdutos()
+    selecionarProduto = input("Id do produto acima: ")
+    userColumn = mydb.produto
+    favId = ObjectId(selecionarProduto)
+    mydoc = userColumn.find({
+        # papel na gaveta - corresponder a data 27/04/2001
+        "_id": {"$eq": favId}
+    }, {
+        "nome": 1,
+        "_id": 0
+    }) 
+    favRedis = json.loads(conectar.hget(f'fav:' + idUser, "favoritos"))
+    listaVazia = []
+    for itensJaExistente in favRedis:
+        listaVazia.append(itensJaExistente)
+    for nomeProduto in mydoc:
+        listaVazia.append({
+            "Nome" : nomeProduto["nome"],
+            "Preço": nomeProduto["preco"]})
+    conectar.hset(f'fav:' + idUser, "favoritos", json.dumps(listaVazia))
+
+
+def sincronizacaoRedisMongo(idUser):
+    getUsuario = json.loads(conectar.hget(f'fav:' + idUser, 'favoritos'))
+    idObject = ObjectId(idUser)
+    gavetaUser = mydb.usuario
+    findQueryUsuario = ({"_id": idObject})
+    for produto in getUsuario:
+        insertProduto = {"$addToSet": {"favoritos": produto}}
+        gavetaUser.update_one(findQueryUsuario, insertProduto )
+
+
+sincronizacaoRedisMongo("632a5e7b099a52557e0f24aa")
