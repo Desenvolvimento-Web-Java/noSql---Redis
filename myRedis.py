@@ -411,5 +411,4 @@ def sincronizacaoRedisMongo(idUser):
 
 sincronizacaoRedisMongo("632a5e7b099a52557e0f24aa")
 
-
 main()
