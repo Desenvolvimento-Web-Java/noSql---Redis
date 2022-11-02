@@ -18,14 +18,16 @@ mydb = client.mercadoLivre
 
 
 #Conecção Redis
-conectar = redis.Redis(host='redis-13542.c275.us-east-1-4.ec2.cloud.redislabs.com',
-                   port=13542,
-                   password='qR58kVZOGUkWSQ5M5WTs3bCZ3mwMAujk')
-""" conectar = redis.Redis(host='redis-13733.c10.us-east-1-2.ec2.cloud.redislabs.com',
-                   port=13733,
-                   password='bdnr123') """
+conectar = redis.Redis(host='redis-12081.c265.us-east-1-2.ec2.cloud.redislabs.com',
+                   port=12081,
+                   password='123123')
 
 """ conR.set('user:name', 'priscila') """
+
+
+####MONGODB#####
+
+
 ######USUÁRIO######
 
 
@@ -237,9 +239,6 @@ def findSortUser():
         print(result)
 
 
-
-
-
 def findQueryVendedor(alvo):
     global mydb
     vendedorColumn = mydb.vendedor
@@ -344,16 +343,19 @@ def main():
             case "5":
                findSortUser()
                 
+main()
 
-
-#main()
 
 # MongoDB -> Redis ( Usuario criar uma Wish List ) ✔
-# Reids -> Manipular a Wish List do usuario
-# Wish List -> MongoDB
+# Redis -> Manipular a Wish List do usuario ✔
+# Wish List -> MongoDB ✔
 
 # CHAVE
 # fav:ID
+
+
+####REDIS#####
+
 
 def inserirUsuarioRedis(parametro):
     userColumn = mydb.usuario
@@ -408,3 +410,6 @@ def sincronizacaoRedisMongo(idUser):
 
 
 sincronizacaoRedisMongo("632a5e7b099a52557e0f24aa")
+
+
+main()
